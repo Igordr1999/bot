@@ -105,6 +105,8 @@ class Bot(object):
                     array_my_action.append(param[0])     # записываем само слово в массив слов с нужным знач
             new_answer = random.choice(array_my_action)  # выбираем рандомный ответ из словаря с опред. экшеном
             answer = answer + " " + new_answer + "."     # записываем ответ на конкретное слово в текст ответа
+            array_my_action = []                         # чистом временные словаря
+            param = []
         new_answer = ""
 
         answer = answer[1:]
@@ -112,6 +114,7 @@ class Bot(object):
             answer = random.choice(no_answer)
 
         full_answer = "Твое сообщение: " + self.last_message + "\n" + "Мой ответ: " + answer
+        print(self.to_do_actions)
         self.clean_after_answer()
         return answer  # full_answer - debug, answer - release
 
