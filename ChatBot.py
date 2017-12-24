@@ -70,15 +70,24 @@ class Bot(object):
         my_str = my_str[1:]
         self.words = my_str.split(' ')
 
+    def search_word_in_dictionary(self, word):
+        for q in dictionary:
+            if q[0] == word:
+                return True  # найдено
+        return False  # не найдено
+
     def auto_corrector(self):
-        for i in self.dry_words:
-            # todo: Если найдено в наших словарях - не исправлять
-            check = Word(i)
+        for dry_word in self.dry_words:
+            if self.search_word_in_dictionary(word=dry_word):
+                self.words.append(dry_word)
+                break  # если нашли это слово в нашем словаре - не чекаем и не исправляем его (обычно - это сленг)
+
+            check = Word(dry_word)
             if not check.correct:
                 if not check.variants == []:
                     self.words.append(check.variants[0])
             else:
-                self.words.append(i)
+                self.words.append(dry_word)
 
     def review_listen(self):
         self.dry_word_breaking()
@@ -87,7 +96,7 @@ class Bot(object):
         # todo: научиться понимать несколько фразы, а не только слова. Пример: Как дела?
         for mess_word in self.words:            # берем слово из сообщения
             for dict_word in dictionary:        # берем слово из словаря
-                if mess_word == dict_word[0]:   # если есть в словаре - добавляем в todo лист
+                if mess_word == dict_word[0]:   # если есть в словаре - добавляем в to do лист
                     self.to_do_actions.append(dict_word[1])
                 else:
                     pass                        # этого слова пока нет в нашем словаре. (для дальнейшей разработки)
@@ -105,7 +114,7 @@ class Bot(object):
                     array_my_action.append(param[0])     # записываем само слово в массив слов с нужным знач
             new_answer = random.choice(array_my_action)  # выбираем рандомный ответ из словаря с опред. экшеном
             answer = answer + " " + new_answer + "."     # записываем ответ на конкретное слово в текст ответа
-            array_my_action = []                         # чистом временные словаря
+            array_my_action = []                         # чистим временные словаря
             param = []
         new_answer = ""
 
@@ -114,7 +123,6 @@ class Bot(object):
             answer = random.choice(no_answer)
 
         full_answer = "Твое сообщение: " + self.last_message + "\n" + "Мой ответ: " + answer
-        print(self.to_do_actions)
         self.clean_after_answer()
         return answer  # full_answer - debug, answer - release
 
