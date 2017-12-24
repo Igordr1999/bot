@@ -4,14 +4,15 @@ import requests
 from pyaspeller import Word
 
 man_hi_words = [
-    "Дороу",
-    "Привет",
-    "Hi",
-    "Здарова",
+    "дороу",
+    "привет",
+    "hi",
+    "здарова",
 ]
 
 man_bye_words = [
-    "Пока",
+    "пока",
+    "покеда",
 ]
 
 actions = [
@@ -61,8 +62,15 @@ class Bot(object):
         self.last_message = message
         self.review_listen()
 
-    def word_breaking(self):
+    def dry_word_breaking(self):
         self.dry_words = self.last_message.split(' ')
+
+    def word_breaking(self):
+        my_str = ""
+        for i in self.words:
+            my_str = my_str + " " + i
+        my_str = my_str[1:]
+        self.words = my_str.split(' ')
 
     def auto_corrector(self):
         for i in self.dry_words:
@@ -70,15 +78,13 @@ class Bot(object):
             if not check.correct:
                 if not check.variants == []:
                     self.words.append(check.variants[0])
-                else:
-                    print("I not UND")
             else:
                 self.words.append(i)
 
-
     def review_listen(self):
-        self.word_breaking()
+        self.dry_word_breaking()
         self.auto_corrector()
+        self.word_breaking()
         print(self.words)
         for i in self.words:
             if man_hi_words.count(i):
@@ -94,13 +100,15 @@ class Bot(object):
             answer = random.choice(robot_bye)
         if self.to_do_actions == "":
             answer = random.choice(robot_dont_answer)
-        full_answer = "Твое сообщение: " + self.last_message + "\n"  + "Мой ответ: " + answer
+        full_answer = "Твое сообщение: " + self.last_message + "\n" + "Мой ответ: " + answer
         self.clean_after_answer()
-        return full_answer  # full_answer - debug, answer - release
+        return answer  # full_answer - debug, answer - release
 
     def clean_after_answer(self):
         self.last_message = ""
         self.to_do_actions = ""
+        self.dry_words = []
+        self.words = []
 
 
 class Mail(object):
@@ -113,7 +121,7 @@ class Mail(object):
         return "I'm mail manager"
 
     def cleaner_message(self):
-        return self.message
+        return self.message.lower()
 
     def inbox(self, message):
         if message:
