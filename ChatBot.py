@@ -2,42 +2,29 @@ import time
 import random
 import requests
 from pyaspeller import Word
+import re
+from copy import copy
 
-man_hi_words = [
-    "дороу",
-    "привет",
-    "hi",
-    "здарова",
+dictionary = [
+    # ['word', 'action', 'side',  mood, polite, cool]
+    # dictionary[0] - первое слово с параметрами, dictionary[0][0] - текст первого слова
+    # word - word
+    # action: 0 - Hi, 1 - Bye,
+    # side: 0 - bot is questioner, 1 - bot is respondent, 2 - anyway
+    # mood, polite, cool - quality bot. type: integer. change range: [-100; 100]
+
+    ["hi",          0, 2, 2, 5, 2],
+    ["привет",      0, 2, 2, 5, 2],
+    ["дороу",       0, 2, 2, 5, 2],
+    ["пока",        1, 2, 2, 5, 2],
+    ["увидимся",    1, 2, 2, 5, 2],
 ]
 
-man_bye_words = [
-    "пока",
-    "покеда",
-    "прощай",
-]
 
-actions = [
-    "hi",
-    "bye"
-]
-
-robot_hi = [
-    "Добрый вечер, я робот ^_^",
-    "Дороу",
-    "Дратути",
-    "Здрасте",
-]
-
-robot_bye = [
-    "Пока :(",
-    "Ну ладно. Увидимся)",
-    "Покеда",
-    "Буду скучать",
-]
-robot_dont_answer = [
-    "Прости, я не понял тебя :(",
-    "Я тебя не понимаю",
-    "Не понял, напиши еще раз",
+no_answer = [
+    "прости, я не понял тебя :(",
+    "я тебя не понимаю",
+    "мне нечего ответить.."
 ]
 
 
@@ -51,6 +38,7 @@ class Bot(object):
 
         self.mood = 70
         self.polite = 50
+        self.cool = 80
 
         self.last_message = ""
         self.to_do_actions = []
@@ -76,6 +64,7 @@ class Bot(object):
 
     def auto_corrector(self):
         for i in self.dry_words:
+            # todo: Если найдено в наших словарях - не исправлять
             check = Word(i)
             if not check.correct:
                 if not check.variants == []:
@@ -87,26 +76,32 @@ class Bot(object):
         self.dry_word_breaking()
         self.auto_corrector()
         self.word_breaking()
-        for i in self.words:
-            if man_hi_words.count(i):
-                self.to_do_actions.append("hi")
-            if man_bye_words.count(i):
-                self.to_do_actions.append("bye")
+        # todo: научиться понимать несколько фразы, а не только слова. Пример: Как дела?
+        for mess_word in self.words:            # берем слово из сообщения
+            for dict_word in dictionary:        # берем слово из словаря
+                if mess_word == dict_word[0]:   # если есть в словаре - добавляем в todo лист
+                    self.to_do_actions.append(dict_word[1])
+                else:
+                    pass                        # этого слова пока нет в нашем словаре. (для дальнейшей разработки)
 
     def response(self):
         answer = ""
         new_answer = ""
-        for i in self.to_do_actions:
-            if i == "hi":
-                new_answer = random.choice(robot_hi)
-            if i == "bye":
-                new_answer = random.choice(robot_bye)
-            answer = answer + " " + new_answer + "."
-            new_answer = ""
+        array_my_action = []
+        param = []
+
+        for action in self.to_do_actions:   # узнаем значение (экшен) ответа
+            for word in dictionary:         # достаем все слова с парам. из нашего словаря
+                param = copy(word)          # записывем массив параметров этого слова в param
+                if param[1] == action:      # если значение слова словаря со значением слова из предожения
+                    array_my_action.append(param[0])     # записываем само слово в массив слов с нужным знач
+            new_answer = random.choice(array_my_action)  # выбираем рандомный ответ из словаря с опред. экшеном
+            answer = answer + " " + new_answer + "."     # записываем ответ на конкретное слово в текст ответа
+        new_answer = ""
 
         answer = answer[1:]
-        if answer == "":
-            answer = random.choice(robot_dont_answer)
+        if answer == "":                    # бот не может ответить ни на одну фразу. Отвечаем готовой фразой
+            answer = random.choice(no_answer)
 
         full_answer = "Твое сообщение: " + self.last_message + "\n" + "Мой ответ: " + answer
         self.clean_after_answer()
@@ -128,7 +123,9 @@ class Mail(object):
         return "I'm mail manager"
 
     def cleaner_message(self):
-        self.message = self.message.lower()
+        mess = self.message.lower()
+        mess = re.sub(r"[#%!@*.,?]", "", mess)
+        self.message = mess
 
     def inbox(self, message):
         if message:
