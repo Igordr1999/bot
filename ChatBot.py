@@ -13,6 +13,7 @@ man_hi_words = [
 man_bye_words = [
     "пока",
     "покеда",
+    "прощай",
 ]
 
 actions = [
@@ -31,6 +32,7 @@ robot_bye = [
     "Пока :(",
     "Ну ладно. Увидимся)",
     "Покеда",
+    "Буду скучать",
 ]
 robot_dont_answer = [
     "Прости, я не понял тебя :(",
@@ -51,7 +53,7 @@ class Bot(object):
         self.polite = 50
 
         self.last_message = ""
-        self.to_do_actions = ""
+        self.to_do_actions = []
         self.dry_words = []
         self.words = []
 
@@ -85,28 +87,34 @@ class Bot(object):
         self.dry_word_breaking()
         self.auto_corrector()
         self.word_breaking()
-        print(self.words)
         for i in self.words:
             if man_hi_words.count(i):
-                self.to_do_actions = "hi"
+                self.to_do_actions.append("hi")
             if man_bye_words.count(i):
-                self.to_do_actions = "bye"
+                self.to_do_actions.append("bye")
 
     def response(self):
         answer = ""
-        if self.to_do_actions == "hi":
-            answer = random.choice(robot_hi)
-        if self.to_do_actions == "bye":
-            answer = random.choice(robot_bye)
-        if self.to_do_actions == "":
+        new_answer = ""
+        for i in self.to_do_actions:
+            if i == "hi":
+                new_answer = random.choice(robot_hi)
+            if i == "bye":
+                new_answer = random.choice(robot_bye)
+            answer = answer + " " + new_answer + "."
+            new_answer = ""
+
+        answer = answer[1:]
+        if answer == "":
             answer = random.choice(robot_dont_answer)
+
         full_answer = "Твое сообщение: " + self.last_message + "\n" + "Мой ответ: " + answer
         self.clean_after_answer()
         return answer  # full_answer - debug, answer - release
 
     def clean_after_answer(self):
         self.last_message = ""
-        self.to_do_actions = ""
+        self.to_do_actions = []
         self.dry_words = []
         self.words = []
 
@@ -115,17 +123,17 @@ class Mail(object):
     def __init__(self):
         self.bot = Bot()
         self.message = "No message"
-        self.cleaner_message()
 
     def __str__(self):
         return "I'm mail manager"
 
     def cleaner_message(self):
-        return self.message.lower()
+        self.message = self.message.lower()
 
     def inbox(self, message):
         if message:
             self.message = message
+        self.cleaner_message()
         self.bot.listen(message=self.message)
 
     def outbox(self):
