@@ -1,5 +1,7 @@
 import time
 import random
+import requests
+from pyaspeller import Word
 
 man_hi_words = [
     "Дороу",
@@ -49,6 +51,8 @@ class Bot(object):
 
         self.last_message = ""
         self.to_do_actions = ""
+        self.dry_words = []
+        self.words = []
 
     def __str__(self):
         return "I'm bot"
@@ -57,9 +61,26 @@ class Bot(object):
         self.last_message = message
         self.review_listen()
 
+    def word_breaking(self):
+        self.dry_words = self.last_message.split(' ')
+
+    def auto_corrector(self):
+        for i in self.dry_words:
+            check = Word(i)
+            if not check.correct:
+                if not check.variants == []:
+                    self.words.append(check.variants[0])
+                else:
+                    print("I not UND")
+            else:
+                self.words.append(i)
+
+
     def review_listen(self):
-        mas = self.last_message.split(' ')
-        for i in mas:
+        self.word_breaking()
+        self.auto_corrector()
+        print(self.words)
+        for i in self.words:
             if man_hi_words.count(i):
                 self.to_do_actions = "hi"
             if man_bye_words.count(i):
@@ -73,7 +94,7 @@ class Bot(object):
             answer = random.choice(robot_bye)
         if self.to_do_actions == "":
             answer = random.choice(robot_dont_answer)
-        full_answer = "Твое сообщение: " + self.last_message + "\n" + "Мой ответ: " + answer
+        full_answer = "Твое сообщение: " + self.last_message + "\n"  + "Мой ответ: " + answer
         self.clean_after_answer()
         return full_answer  # full_answer - debug, answer - release
 
