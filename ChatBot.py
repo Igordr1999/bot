@@ -42,6 +42,10 @@ dictionary = [
     ["меня зовут {name}", 6, 1, 2, 0, 0],
     ["сколько тебе лет",  7, 0, 2, 0, 0],
     ["мне {age} лет",     7, 1, 2, 0, 0],
+    ["сколько времени",   8, 0, 2, 0, 0],
+    ["время",             8, 0, 2, 0, 0],
+    ["Сейчас {time} по UNIX",   8, 1, 2, 0, 0],
+
 
 ]
 
@@ -73,13 +77,21 @@ class Bot(object):
         self.text = ""
         self.sentences = []
 
-        self.data = {
-            'Name': self.name,
-            'Age': self.age
-        }
+        self.data = {}
+        self.upload_data()
 
     def __str__(self):
         return "I'm bot"
+
+    def get_time(self):
+        return int(time.time())
+
+    def upload_data(self):
+        self.data = {
+            'Name': self.name,
+            'Age': self.age,
+            "Time": self.get_time(),
+        }
 
     def listen(self, message):
         self.last_message = message
@@ -196,6 +208,7 @@ class Bot(object):
 
         full_answer = "Твое сообщение: " + self.last_message + "\n" + "Мой ответ: " + answer
         self.clean_after_answer()
+        self.upload_data()
         return answer.format(**self.data)  # full_answer - debug, answer - release
 
     def clean_after_answer(self):
