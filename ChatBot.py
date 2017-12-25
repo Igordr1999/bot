@@ -20,6 +20,7 @@ dictionary = [
     ["пока",        1, 2, 2, 5, 2, 0],
     ["увидимся",    1, 2, 2, 5, 2, 0],
     ["да",          2, 2, 2, 1, 0, 0],
+    ["дя",          2, 2, 2, 1, 0, 0],
     ["согласен",    2, 2, 2, 1, 0, 0],
     ["ок",          2, 2, 2, 1, 0, 0],
     ["нет",         3, 2, 2, -1, 0, 0],
@@ -30,7 +31,6 @@ dictionary = [
     ["хорошо",      4, 1, 2, -1, 0, 1],
     ["отлично",     4, 1, 2, -1, 0, 1],
     ["плохо",       4, 1, 2, -1, 0, 1],
-
 ]
 
 
@@ -55,6 +55,7 @@ class Bot(object):
 
         self.last_message = ""
         self.to_do_actions = []
+        self.to_do_sides = []
         self.dry_words = []
         self.words = []
         self.text = ""
@@ -80,7 +81,6 @@ class Bot(object):
     def sentence_breaking(self):
         split_regex = re.compile(r'[.,|!|?|…]')
         self.sentences = filter(lambda t: t, [t.strip() for t in split_regex.split(self.text)])
-        # self.print_sentences()
 
     def print_sentences(self):
         for s in self.sentences:
@@ -117,14 +117,23 @@ class Bot(object):
         self.word_breaking()
         self.get_clean_text()
         self.sentence_breaking()
-        # todo: научиться понимать несколько фразы, а не только слова. Пример: Как дела?
         self.what_to_do()
+
+    def set_posion_answer(self, start_pos):
+        if start_pos == 0:
+            return 1
+        elif start_pos == 1:
+            return 0
+        else:
+            return 2
 
     def what_to_do(self):
         for sen in self.sentences:
             for dict_word in dictionary:
                 if sen == dict_word[0]:   # если есть в словаре - добавляем в to do лист
                     self.to_do_actions.append(dict_word[1])
+                    self.to_do_sides.append(self.set_posion_answer(start_pos=dict_word[2]))
+                    # запоминаем, в какой позиции нужно ответить (side)
 
     def what_to_do_old(self):
         for mess_word in self.words:            # берем слово из сообщения
@@ -134,25 +143,33 @@ class Bot(object):
                 else:
                     pass                        # этого слова пока нет в нашем словаре. (для дальнейшей разработки)
 
+    def get_param_dictionary_by_word(self, word, pos):
+        for i in dictionary:
+            if i[0] == word:
+                return i[pos]
+
     def response(self):
         answer = ""
         new_answer = ""
         array_my_action = []
         param = []
-
+        kol = 0  # количество прокруток цикла, отсчет с 0
         for action in self.to_do_actions:   # узнаем значение (экшен) ответа
             for word in dictionary:         # достаем все слова с парам. из нашего словаря
                 param = copy(word)          # записывем массив параметров этого слова в param
-                if param[1] == action:      # если значение слова словаря со значением слова из предожения
+                if param[1] == action and param[2] == self.to_do_sides[kol]:
+                    # если значение слова словаря со значением слова из предожения и служит ответом
                     if param[2] == 0:
                         stroka = param[0] + "?"
                     else:
                         stroka = param[0] + "."
                     array_my_action.append(stroka)     # записываем само слово в массив слов с нужным знач
             new_answer = random.choice(array_my_action)  # выбираем рандомный ответ из словаря с опред. экшеном
+
             answer = answer + " " + new_answer.title()     # записываем ответ на конкретное слово в текст ответа
             array_my_action = []                         # чистим временные словаря
             param = []
+            kol += 1
         new_answer = ""
 
         answer = answer[1:]
@@ -166,6 +183,7 @@ class Bot(object):
     def clean_after_answer(self):
         self.last_message = ""
         self.to_do_actions = []
+        self.to_do_sides = []
         self.dry_words = []
         self.words = []
         self.text = ""
@@ -182,7 +200,7 @@ class Mail(object):
 
     def cleaner_message(self):
         mess = self.message.lower()
-        # mess = re.sub(r"[#%!@*.,?]", "", mess)
+        mess = re.sub(r"[#%@*]", "", mess)
         self.message = mess
 
     def inbox(self, message):
