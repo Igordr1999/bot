@@ -9,14 +9,14 @@ dictionary = [
     # ['word', 'action', 'side',  mood, polite, cool]
     # dictionary[0] - первое слово с параметрами, dictionary[0][0] - текст первого слова
     # word - word
-    # action: 0 - Hi, 1 - Bye, 2 - Yes, 3 - No
-    # side: 0 - bot is questioner, 1 - bot is respondent, 2 - anyway
+    # action: 0 - Hi, 1 - Bye, 2 - Yes, 3 - No, 4 - как дела
+    # side: 0 - questioner, 1 - respondent, 2 - anyway
     # mood, polite, cool - quality bot. type: integer. change range: [-100; 100]
 
     ["hi",          0, 2, 2, 5, 2, 0],
     ["привет",      0, 2, 2, 5, 2, 0],
     ["дороу",       0, 2, 2, 5, 2, 2],
-    ["Здрасте",     0, 2, 2, 5, 2, 2],
+    ["здрасте",     0, 2, 2, 5, 2, 2],
     ["пока",        1, 2, 2, 5, 2, 0],
     ["увидимся",    1, 2, 2, 5, 2, 0],
     ["да",          2, 2, 2, 1, 0, 0],
@@ -25,6 +25,11 @@ dictionary = [
     ["нет",         3, 2, 2, -1, 0, 0],
     ["не согласен", 3, 2, 2, -1, 0, 0],
     ["найн",        3, 2, 2, -1, 0, 1],
+    ["как дела",    4, 0, 2, -1, 0, 1],
+    ["как ты",      4, 0, 2, -1, 0, 1],
+    ["хорошо",      4, 1, 2, -1, 0, 1],
+    ["отлично",     4, 1, 2, -1, 0, 1],
+    ["плохо",       4, 1, 2, -1, 0, 1],
 
 ]
 
@@ -52,6 +57,8 @@ class Bot(object):
         self.to_do_actions = []
         self.dry_words = []
         self.words = []
+        self.text = ""
+        self.sentences = []
 
     def __str__(self):
         return "I'm bot"
@@ -69,6 +76,21 @@ class Bot(object):
             my_str = my_str + " " + i
         my_str = my_str[1:]
         self.words = my_str.split(' ')
+
+    def sentence_breaking(self):
+        split_regex = re.compile(r'[.,|!|?|…]')
+        self.sentences = filter(lambda t: t, [t.strip() for t in split_regex.split(self.text)])
+        # self.print_sentences()
+
+    def print_sentences(self):
+        for s in self.sentences:
+            print(s)
+
+    def get_clean_text(self):
+        s = ""
+        for i in self.words:
+            s = s + " " + i
+        self.text = s[1:]
 
     def search_word_in_dictionary(self, word):
         for q in dictionary:
@@ -93,7 +115,18 @@ class Bot(object):
         self.dry_word_breaking()
         self.auto_corrector()
         self.word_breaking()
+        self.get_clean_text()
+        self.sentence_breaking()
         # todo: научиться понимать несколько фразы, а не только слова. Пример: Как дела?
+        self.what_to_do()
+
+    def what_to_do(self):
+        for sen in self.sentences:
+            for dict_word in dictionary:
+                if sen == dict_word[0]:   # если есть в словаре - добавляем в to do лист
+                    self.to_do_actions.append(dict_word[1])
+
+    def what_to_do_old(self):
         for mess_word in self.words:            # берем слово из сообщения
             for dict_word in dictionary:        # берем слово из словаря
                 if mess_word == dict_word[0]:   # если есть в словаре - добавляем в to do лист
@@ -131,6 +164,8 @@ class Bot(object):
         self.to_do_actions = []
         self.dry_words = []
         self.words = []
+        self.text = ""
+        self.sentences = []
 
 
 class Mail(object):
@@ -143,7 +178,7 @@ class Mail(object):
 
     def cleaner_message(self):
         mess = self.message.lower()
-        mess = re.sub(r"[#%!@*.,?]", "", mess)
+        # mess = re.sub(r"[#%!@*.,?]", "", mess)
         self.message = mess
 
     def inbox(self, message):
