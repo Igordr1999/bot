@@ -144,9 +144,13 @@ class Bot(object):
             for word in dictionary:         # достаем все слова с парам. из нашего словаря
                 param = copy(word)          # записывем массив параметров этого слова в param
                 if param[1] == action:      # если значение слова словаря со значением слова из предожения
-                    array_my_action.append(param[0])     # записываем само слово в массив слов с нужным знач
+                    if param[2] == 0:
+                        stroka = param[0] + "?"
+                    else:
+                        stroka = param[0] + "."
+                    array_my_action.append(stroka)     # записываем само слово в массив слов с нужным знач
             new_answer = random.choice(array_my_action)  # выбираем рандомный ответ из словаря с опред. экшеном
-            answer = answer + " " + new_answer + "."     # записываем ответ на конкретное слово в текст ответа
+            answer = answer + " " + new_answer.title()     # записываем ответ на конкретное слово в текст ответа
             array_my_action = []                         # чистим временные словаря
             param = []
         new_answer = ""
