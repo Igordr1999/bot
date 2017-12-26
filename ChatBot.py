@@ -66,7 +66,7 @@ class Bot(object):
         self.sex = "Man"
         self.language = "ru-Ru"
         self.speaker = "zahar"  # alyss
-        self.type_answer = "voice"  # text or voice
+        self.type_answer = "text"  # text or voice
 
         self.api_request = "{host}?text={text}&format={format}&lang={lang}&speaker={speaker}&emotion={mood}&key={key}"
         self.api_key = "151d7f5a-da6d-4564-84eb-0a93b300d688"
@@ -84,6 +84,9 @@ class Bot(object):
         self.words = []
         self.text = ""
         self.sentences = []
+
+        self.static_answer = ""
+        self.dynamic_answer = ""
 
         self.data = {}
         self.upload_data()
@@ -208,20 +211,24 @@ class Bot(object):
         return answer
 
     def response(self):
-        answer = self.review_response()
+        self.static_answer = self.review_response()
         self.after_response()
+
         self.upload_data()
-        text_answer = answer.format(**self.data)
+        self.dynamic_answer = self.static_answer.format(**self.data)
 
         if self.type_answer == "text":
-            return text_answer
+            return self.text_response()
         elif self.type_answer == "voice":
-            return self.voice_response(text_answer=text_answer)
+            return self.voice_response()
         else:
             return "Некорректный тип ответа"
 
-    def voice_response(self, text_answer):
-        text_in_url_format = urllib.parse.quote(text_answer)
+    def text_response(self):
+        return self.dynamic_answer
+
+    def voice_response(self):
+        text_in_url_format = urllib.parse.quote(self.dynamic_answer)
         api_data = {
             'host': self.api_host,
             'text': text_in_url_format,
@@ -242,6 +249,7 @@ class Bot(object):
         self.words = []
         self.text = ""
         self.sentences = []
+        self.answer = ""
 
 
 class Mail(object):
