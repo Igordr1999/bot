@@ -64,13 +64,14 @@ class Bot(object):
         self.last_name = "Петров"
         self.age = 18
         self.sex = "Man"
-        self.language = "RU"
+        self.language = "ru-Ru"
         self.speaker = "zahar"  # alyss
         self.type_answer = "voice"  # text or voice
 
-        self.api_request = "https://tts.voicetech.yandex.net/generate?text={text}&format=mp3&lang=ru-RU" \
-                           "&speaker={speaker}&emotion=good&key={key}"
+        self.api_request = "{host}?text={text}&format={format}&lang={lang}&speaker={speaker}&emotion={mood}&key={key}"
         self.api_key = "151d7f5a-da6d-4564-84eb-0a93b300d688"
+        self.api_format = "mp3"
+        self.api_host = "https://tts.voicetech.yandex.net/generate"
 
         self.mood = 70
         self.polite = 50
@@ -213,7 +214,6 @@ class Bot(object):
         if answer == "":                    # бот не может ответить ни на одну фразу. Отвечаем готовой фразой
             answer = random.choice(no_answer)
 
-        full_answer = "Твое сообщение: " + self.last_message + "\n" + "Мой ответ: " + answer
         self.clean_after_answer()
         self.upload_data()
         if self.type_answer == "text":
@@ -221,13 +221,18 @@ class Bot(object):
         elif self.type_answer == "voice":
             text_for_url = urllib.parse.quote(answer.format(**self.data))
             api_data = {
+                'host': self.api_host,
                 'text': text_for_url,
                 'key': self.api_key,
-                'speaker': self.speaker
+                'speaker': self.speaker,
+                'lang': self.language,
+                'mood': "good",
+                'format': self.api_format,
             }
             speak = self.api_request.format(**api_data)
             return speak
-
+        else:
+            return "Некорректный тип ответа"
     def clean_after_answer(self):
         self.last_message = ""
         self.to_do_actions = []
