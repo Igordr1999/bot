@@ -45,7 +45,8 @@ dictionary = [
     ["мне {age} лет",     7, 1, 2, 0, 0],
     ["сколько времени",   8, 0, 2, 0, 0],
     ["время",             8, 0, 2, 0, 0],
-    ["Сейчас {time} по UNIX",   8, 1, 2, 0, 0],
+    ["сейчас {time} по UNIX",   8, 1, 2, 0, 0],
+    ["без ответа", 9, 0, 2, 0, 0]
 
 
 ]
@@ -91,6 +92,8 @@ class Bot(object):
         self.data = {}
         self.upload_data()
 
+        self.answer = ""
+
     def __str__(self):
         return "I'm bot"
 
@@ -99,9 +102,9 @@ class Bot(object):
 
     def upload_data(self):
         self.data = {
-            'Name': self.name,
-            'Age': self.age,
-            "Time": self.get_time(),
+            'name': self.name,
+            'age': self.age,
+            "time": self.get_time(),
         }
 
     def listen(self, message):
@@ -180,35 +183,48 @@ class Bot(object):
             if i[0] == word:
                 return i[pos]
 
+    def get_no_answer(self):
+        return random.choice(no_answer)
+
+    def set_end_symbol(self, phrase, side):
+        if side == 0:
+            sentence = phrase + "?"
+        else:
+            sentence = phrase + "."
+        return sentence
+
     def review_response(self):
-        answer = ""
-        new_answer = ""
         array_my_action = []
-        param = []
         kol = 0  # количество прокруток цикла, отсчет с 0
         for action in self.to_do_actions:  # узнаем значение (экшен) ответа
             for word in dictionary:  # достаем все слова с парам. из нашего словаря
                 param = copy(word)  # записывем массив параметров этого слова в param
-                if param[1] == action and param[2] == self.to_do_sides[kol]:
-                    # todo: исправить вылет приложения при отсутствии ответа
+                phrase_text = param[0]
+                phrase_action = param[1]
+                phrase_side = param[2]
+                if phrase_action == action and phrase_side == self.to_do_sides[kol]:
                     # если значение слова словаря со значением слова из предожения и служит ответом
-                    if param[2] == 0:
-                        stroka = param[0] + "?"
-                    else:
-                        stroka = param[0] + "."
-                    array_my_action.append(stroka)  # записываем само слово в массив слов с нужным знач
-            new_answer = random.choice(array_my_action)  # выбираем рандомный ответ из словаря с опред. экшеном
-            # todo: повышать регистр только первого слова
-            answer = answer + " " + new_answer.title()  # записываем ответ на конкретное слово в текст ответа
-            array_my_action = []  # чистим временные словари
-            param = []
-            kol += 1
-        new_answer = ""
+                    array_my_action.append(self.set_end_symbol(phrase_text, phrase_side))  # записываем само слово в массив слов с нужным знач
 
-        answer = answer[1:]
-        if answer == "":  # бот не может ответить ни на одну фразу. Отвечаем готовой фразой
-            answer = random.choice(no_answer)
-        return answer
+            self.add_new_answer_sentence(array_my_action)
+            array_my_action.clear()  # чистим временные словари
+            kol += 1
+        self.answer = self.answer[1:]
+        if self.answer == "":  # бот не может ответить ни на одну фразу. Отвечаем готовой фразой
+            self.answer = self.get_no_answer()
+        return self.answer
+
+    def add_new_answer_sentence(self, my_action):
+        if my_action == []:
+            return self.get_no_answer()
+        else:
+            new_answer = random.choice(my_action)  # выбираем рандомный ответ из словаря с опред. экшеном
+        # todo: повышать регистр только первого слова
+        self.answer = self.answer + " " + self.capital_letter(
+            new_answer)  # записываем ответ на конкретное слово в текст ответа
+
+    def capital_letter(self, sentence):
+        return sentence[0].title() + sentence[1:]
 
     def response(self):
         self.static_answer = self.review_response()
@@ -243,10 +259,10 @@ class Bot(object):
 
     def after_response(self):
         self.last_message = ""
-        self.to_do_actions = []
-        self.to_do_sides = []
-        self.dry_words = []
-        self.words = []
+        self.to_do_actions.clear()
+        self.to_do_sides.clear()
+        self.dry_words.clear()
+        self.words.clear()
         self.text = ""
         self.sentences = []
         self.answer = ""
