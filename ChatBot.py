@@ -1,11 +1,11 @@
 import time
+import datetime
 import random
 import requests
 from pyaspeller import Word
 import re
 from copy import copy
 import urllib
-
 dictionary = [
     # ['word', 'action', 'side',  mood, polite, cool]
     # dictionary[0] - первое слово с параметрами, dictionary[0][0] - текст первого слова
@@ -47,10 +47,7 @@ dictionary = [
     ["время",             8, 0, 2, 0, 0],
     ["сейчас {time} по UNIX",   8, 1, 2, 0, 0],
     ["без ответа", 9, 0, 2, 0, 0]
-
-
 ]
-
 
 no_answer = [
     "прости, я не понял тебя :(",
@@ -98,7 +95,9 @@ class Bot(object):
         return "I'm bot"
 
     def get_time(self):
-        return int(time.time())
+        d = datetime.datetime.now()
+        d = d.strftime("%d.%m.%Y %H:%M")
+        return "qqq"
 
     def upload_data(self):
         self.data = {
@@ -223,9 +222,9 @@ class Bot(object):
         return sentence[0].title() + sentence[1:]
 
     def before_response(self):
-        self.full_answer = self.full_answer[1:]
-        if self.full_answer == "":  # бот не может ответить ни на одну фразу. Отвечаем готовой фразой
-            self.full_answer = self.get_no_answer()
+        self.static_answer = self.static_answer[1:]
+        if self.static_answer == "":  # бот не может ответить ни на одну фразу. Отвечаем готовой фразой
+            self.static_answer = self.get_no_answer()
 
     def response(self):
         self.static_answer = self.review_response()     # получаем статичный ответ
@@ -234,6 +233,8 @@ class Bot(object):
 
         self.upload_data()                              # получение актуальных данных
         self.dynamic_answer = self.static_answer.format(**self.data)  # вставляем актуальные данные
+
+        return self.get_final_answer()  # финальный ответ
 
     def get_final_answer(self):
         if self.type_answer == "text":
