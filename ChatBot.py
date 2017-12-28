@@ -45,8 +45,18 @@ dictionary = [
     ["мне {age} лет",     7, 1, 2, 0, 0],
     ["сколько времени",   8, 0, 2, 0, 0],
     ["время",             8, 0, 2, 0, 0],
-    ["сейчас {time} по UNIX",   8, 1, 2, 0, 0],
-    ["без ответа", 9, 0, 2, 0, 0]
+    ["сейчас в Москве {time}",   8, 1, 2, 0, 0],
+    ["сейчас у меня {time}",   8, 1, 2, 0, 0],
+    ["дата",             9, 0, 2, 0, 0],
+    ["какое сегодня число", 9, 0, 2, 0, 0],
+    ["{date}",   9, 1, 2, 0, 0],
+    ["сегодня {date}", 9, 1, 2, 0, 0],
+    ["без ответа", 100, 0, 2, 0, 0],
+    ["откуда ты", 10, 0, 2, 0, 0],
+    ["{city}", 10, 1, 2, 0, 0],
+    ["Я из города {city}, {country}", 10, 1, 2, 0, 0],
+    ["твой рост", 10, 0, 2, 0, 0],
+    ["{height}", 10, 1, 2, 0, 0],
 ]
 
 no_answer = [
@@ -61,8 +71,13 @@ class Bot(object):
         self.name = "Вася"
         self.last_name = "Петров"
         self.age = 18
-        self.sex = "Man"
+        self.sex = "мужчина"
+        self.city = "Москва"
+        self.country = "Россия"
+        self.height = 170
+
         self.language = "ru-Ru"
+
         self.speaker = "zahar"  # alyss
         self.type_answer = "text"  # text or voice
 
@@ -94,16 +109,26 @@ class Bot(object):
     def __str__(self):
         return "I'm bot"
 
+    def get_date(self):
+        d = datetime.datetime.now()
+        d_text = d.strftime("%d.%m.%Y %H:%M")
+        return d_text
+
     def get_time(self):
         d = datetime.datetime.now()
-        d = d.strftime("%d.%m.%Y %H:%M")
-        return "qqq"
+        d_text = d.strftime("%H:%M")
+        return d_text
 
     def upload_data(self):
         self.data = {
-            'name': self.name,
-            'age': self.age,
+            "name": self.name,
+            "last_name": self.last_name,
+            "age": self.age,
+            "city": self.city,
+            "country": self.country,
+            "height": self.height,
             "time": self.get_time(),
+            "date": self.get_date(),
         }
 
     def listen(self, message):
