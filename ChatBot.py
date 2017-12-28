@@ -92,7 +92,7 @@ class Bot(object):
         self.data = {}
         self.upload_data()
 
-        self.answer = ""
+        self.full_answer = ""
 
     def __str__(self):
         return "I'm bot"
@@ -196,43 +196,46 @@ class Bot(object):
     def review_response(self):
         array_my_action = []
         kol = 0  # количество прокруток цикла, отсчет с 0
-        for action in self.to_do_actions:  # узнаем значение (экшен) ответа
-            for word in dictionary:  # достаем все слова с парам. из нашего словаря
-                param = copy(word)  # записывем массив параметров этого слова в param
+        for action in self.to_do_actions:   # узнаем значение (экшен) ответа
+            for word in dictionary:         # достаем все слова с парам. из нашего словаря
+                param = copy(word)          # записываем массив параметров этого слова в param
                 phrase_text = param[0]
                 phrase_action = param[1]
                 phrase_side = param[2]
                 if phrase_action == action and phrase_side == self.to_do_sides[kol]:
+                    array_my_action.append(self.set_end_symbol(phrase_text, phrase_side))
                     # если значение слова словаря со значением слова из предожения и служит ответом
-                    array_my_action.append(self.set_end_symbol(phrase_text, phrase_side))  # записываем само слово в массив слов с нужным знач
+                    # записываем фразу в массив фраз с нужным смысловым значением
 
             self.add_new_answer_sentence(array_my_action)
             array_my_action.clear()  # чистим временные словари
             kol += 1
-        self.answer = self.answer[1:]
-        if self.answer == "":  # бот не может ответить ни на одну фразу. Отвечаем готовой фразой
-            self.answer = self.get_no_answer()
-        return self.answer
+        return self.full_answer
 
     def add_new_answer_sentence(self, my_action):
         if my_action == []:
             return self.get_no_answer()
         else:
             new_answer = random.choice(my_action)  # выбираем рандомный ответ из словаря с опред. экшеном
-        # todo: повышать регистр только первого слова
-        self.answer = self.answer + " " + self.capital_letter(
-            new_answer)  # записываем ответ на конкретное слово в текст ответа
+        self.full_answer = self.full_answer + " " + self.capital_letter(new_answer)
 
     def capital_letter(self, sentence):
         return sentence[0].title() + sentence[1:]
 
+    def before_response(self):
+        self.full_answer = self.full_answer[1:]
+        if self.full_answer == "":  # бот не может ответить ни на одну фразу. Отвечаем готовой фразой
+            self.full_answer = self.get_no_answer()
+
     def response(self):
-        self.static_answer = self.review_response()
-        self.after_response()
+        self.static_answer = self.review_response()     # получаем статичный ответ
+        self.before_response()                          # финальная обработка
+        self.after_response()                           # очиска памяти
 
-        self.upload_data()
-        self.dynamic_answer = self.static_answer.format(**self.data)
+        self.upload_data()                              # получение актуальных данных
+        self.dynamic_answer = self.static_answer.format(**self.data)  # вставляем актуальные данные
 
+    def get_final_answer(self):
         if self.type_answer == "text":
             return self.text_response()
         elif self.type_answer == "voice":
@@ -265,7 +268,7 @@ class Bot(object):
         self.words.clear()
         self.text = ""
         self.sentences = []
-        self.answer = ""
+        self.full_answer = ""
 
 
 class Mail(object):
