@@ -54,9 +54,11 @@ dictionary = [
     ["без ответа", 100, 0, 2, 0, 0],
     ["откуда ты", 10, 0, 2, 0, 0],
     ["{city}", 10, 1, 2, 0, 0],
-    ["Я из города {city}, {country}", 10, 1, 2, 0, 0],
-    ["твой рост", 10, 0, 2, 0, 0],
-    ["{height}", 10, 1, 2, 0, 0],
+    ["я из города {city}, {country}", 10, 1, 2, 0, 0],
+    ["рост", 11, 0, 2, 0, 0],
+    ["{height}", 11, 1, 2, 0, 0],
+    ["пол", 12, 0, 2, 0, 0],
+    ["{sex}", 12, 1, 2, 0, 0],
 ]
 
 no_answer = [
@@ -124,6 +126,7 @@ class Bot(object):
             "name": self.name,
             "last_name": self.last_name,
             "age": self.age,
+            "sex": self.sex,
             "city": self.city,
             "country": self.country,
             "height": self.height,
